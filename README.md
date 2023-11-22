@@ -8,9 +8,8 @@ Given a list of urls, the application will navigate to each url, extract the pub
 Follow these steps to install the application:
 
 1. Clone the repository: `git clone <repository_url>`
-2. chmod +x run.sh
-3 . Run `bash run.sh`
-
+2. Run `bash run.sh`
+    2.1. If permissions issues run  `chmod +x run.sh`
 ## Usage
 
 1. run `bash run.sh`
