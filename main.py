@@ -5,9 +5,12 @@ import os
 from datetime import datetime
 import logging
 
-APPLICATION_NAME = "website crawler"
-
+APPLICATION_NAME = "Copy Harvester"
+# Copy Combine.
 logging.getLogger("scrapy").setLevel(logging.INFO)
+
+
+# TODO -  ALLOW ONLY ONE URL FOR SITEMAP TO BE SCRAPPED. AND TO PROVIDE FEEDBACK
 
 
 def create_today_directory():
@@ -35,16 +38,48 @@ def create_today_directory():
 
 def correct_url(url):
     """Correct the URL if necessary"""
-    parsed = urlparse(url)
-    if not parsed.scheme:
-        url = "https://" + url
-    if not parsed.netloc:
-        url = url.replace(parsed.path, "www." + parsed.path)
-    return url
+    try:
+        parsed = urlparse(url, "http")
+        if not parsed.netloc:
+            # If the netloc is missing, assume the path is the netloc
+            # This handles cases like 'example.com'
+            parsed = parsed._replace(netloc=parsed.path, path="")
+        if not parsed.scheme:
+            # Default to http if the scheme is missing
+            parsed = parsed._replace(scheme="http")
+
+        corrected_url = parsed.geturl()
+        return corrected_url
+    except Exception as e:
+        print(f"Error processing URL {url}: {e}")
+        return None
 
 
-def run_spider(url, index, directory):
+def run_page_spider(url, directory):
+    """
+    Function to handle scraping of multiple URLs.
+    urls: A list of URLs.
+    directory: The directory where the scraped data will be saved.
+    """
+    print("run page spider ", url)
+    print(type(url))
     url = correct_url(url)
+    if url is None:
+        print("Invalid URL provided.")
+        return
+
+    command = f"scrapy crawl page_spider -a url_list='{url}' -a directory={directory}"
+    print("Command:", command)  # Debugging print statement
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    process.wait()
+
+
+def run_sitemap_spider(url, index, directory):
+    url = correct_url(url)
+    print(type(url))
+    if url is None:
+        print("Invalid URL provided.")
+        return
     # Update the command to save output to different files based on the URL index
     command = f"scrapy crawl sitemap_spider -a url={url} -a directory={directory}"
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
@@ -58,6 +93,13 @@ def run_spider(url, index, directory):
 )
 def main():
     parser = GooeyParser(description="Enter URLs to crawl")
+
+    # parser.add_argument(
+    #     "--scrape_method",
+    #     help="Choose the scraping method",
+    #     choices=["Sitemap", "Specific URL"],
+    #     default="Sitemap",
+    # )
     parser.add_argument(
         "URLs", help="Enter URLs separated by commas", widget="Textarea"
     )
@@ -72,21 +114,14 @@ def main():
 
     # Create today's directory and save its path
     save_folder = create_today_directory()
-
+    print("URLS TO PASS  ", urls)
     for index, url in enumerate(urls):
-        # Pass the save_folder as the third argument
-        run_spider(url.strip(), index, save_folder)
+        url = url.strip()
+        # if args.scrape_method == "Sitemap":
+        # run_sitemap_spider(url, index, save_folder)
+        # elif args.scrape_method == "Specific URL":
+        run_page_spider(url, save_folder)
         print(f"Spider has finished running for {url}!")
-
-    # Inform users about the file location
-    print(f"Files are saved in {save_folder}")
-
-    # Open the save folder if the user requested it
-    if args.open_folder:
-        if os.name == "nt":  # Windows
-            os.startfile(save_folder)
-        elif os.name == "posix":  # macOS, Linux
-            subprocess.run(["open", save_folder])
 
 
 if __name__ == "__main__":

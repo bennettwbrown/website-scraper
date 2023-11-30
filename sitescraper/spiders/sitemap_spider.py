@@ -6,12 +6,21 @@ import os
 import logging
 
 
+# def get_base_domain(url):
+#     """Extract the base domain from the URL"""
+#     parsed_uri = urlparse(url)
+#     domain = parsed_uri.netloc
+#     base_domain = domain.replace("www.", "").split(".")[0]
+#     return base_domain
+
+
 def get_base_domain(url):
-    """Extract the base domain from the URL"""
+    """Extract the domain and top-level domain from the URL, excluding subdomains."""
     parsed_uri = urlparse(url)
-    domain = parsed_uri.netloc
-    base_domain = domain.replace("www.", "").split(".")[0]
-    return base_domain
+    domain_parts = parsed_uri.netloc.split(".")
+    # Keep only the domain and top-level domain (e.g., example.com)
+    domain = ".".join(domain_parts[-2:])
+    return domain
 
 
 def parse_sitemap(url):

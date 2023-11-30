@@ -18,7 +18,7 @@ NEWSPIDER_MODULE = "sitescraper.spiders"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-LOG_LEVEL = "INFO"  # Can be set to 'WARNING' to reduce verbosity further
+LOG_LEVEL = "DEBUG"  # Can be set to 'WARNING' to reduce verbosity further. INFO
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
 
